@@ -1,26 +1,27 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { loginAdmin } from "../../services/authService"; // API call function
 
 function AdminLogin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleAdminLogin = (e) => {
+  const handleAdminLogin = async (e) => {
     e.preventDefault();
-    const storedAdmin = JSON.parse(localStorage.getItem("admin"));
+    setError("");
+    setLoading(true);
 
-    if (!storedAdmin) {
-      setError("No admin account found. Please sign up.");
-      return;
-    }
-
-    if (storedAdmin.email === email && storedAdmin.password === password) {
+    try {
+      await loginAdmin(email, password);
       alert("Admin Login successful!");
       navigate("/admin-dashboard"); // Redirect to Admin Dashboard
-    } else {
-      setError("Invalid admin email or password.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Invalid email or password.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,8 +49,12 @@ function AdminLogin() {
             className="w-full p-2 border rounded mb-2"
             required
           />
-          <button type="submit" className="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600">
-            Admin Sign In
+          <button 
+            type="submit" 
+            className="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600"
+            disabled={loading}
+          >
+            {loading ? "Signing In..." : "Admin Sign In"}
           </button>
         </form>
 

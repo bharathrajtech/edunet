@@ -4,23 +4,28 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const authMiddleware = (req, res, next) => {
-    const token = req.header("Authorization");
-  
-    console.log("Received Token:", token); // Debugging
-    
-    if (!token) return res.status(401).json({ message: "Access Denied: No Token Provided" });
-  
-    try {
-      const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
-      console.log("Decoded Token:", decoded); // Debugging
-      req.user = decoded;
+const authMiddleware = async (req, res, next) => {
+  try {
+      const token = req.header("Authorization");
+
+      if (!token) {
+          return res.status(401).json({ message: "No token, authorization denied" });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findById(decoded.id).select("-password"); // Attach user to request
+
+      if (!req.user) {
+          return res.status(401).json({ message: "User not found" });
+      }
+
+      console.log("User from authMiddleware:", req.user); // Debugging
+
       next();
-    } catch (error) {
-      console.error("JWT Verification Error:", error);
-      res.status(403).json({ message: "Invalid Token" });
-    }
-  };
+  } catch (error) {
+      res.status(401).json({ message: "Invalid token" });
+  }
+};
   
 export const adminMiddleware = (req, res, next) => {
     if (req.user.role !== "admin") {

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { registerUser } from "../services/authService"; // API call function
 
 function SignUp() {
   const navigate = useNavigate();
@@ -7,22 +8,22 @@ function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
+    setError(""); // Reset error message
+    setLoading(true); // Start loading
 
-    // Validation
-    if (!name || !email || password.length < 6) {
-      setError("Please fill all fields correctly. Password must be at least 6 characters.");
-      return;
+    try {
+      await registerUser(name, email, password); // Call backend API
+      alert("Sign Up successful! You can now log in.");
+      navigate("/signin"); // Redirect to Sign In page
+    } catch (err) {
+      setError(err.response?.data?.message || "Sign-up failed. Please try again.");
+    } finally {
+      setLoading(false); // Stop loading
     }
-
-    // Save user data in local storage (for now, since no backend)
-    const userData = { name, email };
-    localStorage.setItem("user", JSON.stringify(userData));
-
-    alert("Sign Up successful! You can now log in.");
-    navigate("/signin"); // Redirect to Sign In page
   };
 
   return (
@@ -57,8 +58,12 @@ function SignUp() {
             className="w-full p-2 border rounded mb-2"
             required
           />
-          <button type="submit" className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">
-            Sign Up
+          <button 
+            type="submit" 
+            className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600"
+            disabled={loading}
+          >
+            {loading ? "Signing Up..." : "Sign Up"}
           </button>
         </form>
 

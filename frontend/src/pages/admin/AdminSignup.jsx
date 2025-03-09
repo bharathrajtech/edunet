@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { registerAdmin } from "../../services/authService"; // API call function
 
 function AdminSignup() {
   const navigate = useNavigate();
@@ -7,16 +8,21 @@ function AdminSignup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleAdminSignup = (e) => {
+  const handleAdminSignup = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    if (name && email && password.length >= 6) {
-      localStorage.setItem("admin", JSON.stringify({ name, email, password }));
+    try {
+      await registerAdmin(name, email, password);
       alert("Admin Sign Up successful! You can now log in.");
       navigate("/admin-login"); // Redirect to Admin Login
-    } else {
-      setError("Please fill all fields correctly.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Admin signup failed. Try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,8 +56,12 @@ function AdminSignup() {
             className="w-full p-2 border rounded mb-2"
             required
           />
-          <button type="submit" className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">
-            Register as Admin
+          <button 
+            type="submit" 
+            className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600"
+            disabled={loading}
+          >
+            {loading ? "Signing Up..." : "Register as Admin"}
           </button>
         </form>
 

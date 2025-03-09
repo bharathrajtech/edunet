@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import restaurantRoutes from "./routes/restaurantRoutes.js";
 import dishRoutes from "./routes/dishRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -15,6 +16,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/dishes", dishRoutes);
 app.use("/api/restaurants", restaurantRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/cart", cartRoutes);
+
 app.use(cors({
     origin: ["http://localhost:5173"],
     credentials: true

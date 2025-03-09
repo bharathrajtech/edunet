@@ -92,4 +92,36 @@ router.get("/profile", authMiddleware, async (req, res) => {
     }
 });
 
+router.post("/admin-signin", async (req, res) => {
+  try {
+      const { email, password } = req.body;
+
+      // Check if admin exists
+      const user = await User.findOne({ email });
+      if (!user || user.role !== "admin") {
+          return res.status(400).json({ message: "Invalid credentials or not an admin" });
+      }
+
+      // Validate password
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+          return res.status(400).json({ message: "Invalid email or password" });
+      }
+
+      // Generate JWT Token
+      const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+          expiresIn: "7d",
+      });
+
+      res.json({
+          message: "Admin signed in successfully",
+          token,
+          user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      });
+
+  } catch (error) {
+      res.status(500).json({ message: "Server Error", error: error.message });
+  }
+});
+
 export default router;

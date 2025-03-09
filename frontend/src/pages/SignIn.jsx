@@ -1,6 +1,7 @@
 import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import AuthContext from "../context/AuthContext"; // Import Auth Context
+import { loginUser } from "../services/authService"; // API call function
 
 function SignIn() {
   const navigate = useNavigate();
@@ -9,21 +10,18 @@ function SignIn() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSignIn = (e) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
-    const storedUser = JSON.parse(localStorage.getItem("user"));
+    setError(""); // Reset error state
 
-    if (!storedUser) {
-      setError("No account found. Please sign up.");
-      return;
-    }
-
-    if (storedUser.email === email) {
-      login(email); // Call AuthContext login function
+    try {
+      const response = await loginUser(email, password); // Call backend API
+      localStorage.setItem("token", response.token); // Store JWT token
+      login(response.user); // Update AuthContext
       alert("Login successful!");
       navigate("/"); // Redirect to Home
-    } else {
-      setError("Invalid email or password.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed. Please try again.");
     }
   };
 
